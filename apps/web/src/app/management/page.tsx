@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import AttendanceImport from './attendance-import';
 
 export const dynamic = 'force-dynamic';
@@ -37,7 +38,7 @@ export default async function ManagementPage({ searchParams }: { searchParams: P
       </section>
       <AttendanceImport />
       <section className="card"><p className="eyebrow">Departments</p><div className="table">{dashboard.departments.map(d => <div className="table-row" key={d.name}><span>{d.name}</span><span>{d.employeeCount} employees</span><strong>{d.averageScore.toFixed(1)}</strong></div>)}</div></section>
-      <section className="card"><p className="eyebrow">Top eligible candidates · {cycle}</p><div className="table">{dashboard.topCandidates.map(c => <div className="table-row" key={c.employeeId}><span>#{c.rank}</span><span>{c.employeeName}</span><strong>{c.score.toFixed(2)}</strong></div>)}{dashboard.topCandidates.length === 0 && <p className="muted">No finalized eligible candidates yet.</p>}</div></section>
+      <section className="card"><p className="eyebrow">Top eligible candidates · {cycle}</p><div className="table">{dashboard.topCandidates.map(c => <Link className="table-row" href={`/performance/employee/${encodeURIComponent(c.employeeId)}?cycle=${encodeURIComponent(cycle)}`} key={c.employeeId}><span>#{c.rank}</span><span>{c.employeeName}</span><strong>{c.score.toFixed(2)}</strong><span>View performance →</span></Link>)}{dashboard.topCandidates.length === 0 && <p className="muted">No finalized eligible candidates yet.</p>}</div></section>
     </> : null}
   </main>;
 }
