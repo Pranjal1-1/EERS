@@ -1,4 +1,5 @@
 import { buildDashboardSummary } from '@/lib/dashboard';
+import AttendanceImport from './attendance-import';
 
 const summary = buildDashboardSummary({
   totalEmployees: 10,
@@ -27,6 +28,7 @@ export default function ManagementPage() {
       <article className="card"><p className="muted">Pending approvals</p><strong>{summary.pendingApprovals}</strong><p className="muted">management action</p></article>
       <article className="card"><p className="muted">Pending bonuses</p><strong>{summary.pendingBonuses}</strong><p className="muted">finance action</p></article>
     </section>
+    <AttendanceImport />
     <section className="card"><p className="eyebrow">Departments</p><div className="table">{summary.departments.map((department) => <div className="table-row" key={department.name}><span>{department.name}</span><span>{department.employeeCount} employees</span><strong>{department.averageScore.toFixed(1)}</strong></div>)}</div></section>
     <section className="card"><p className="eyebrow">Top candidates</p><div className="table">{summary.topCandidates.map((candidate) => <div className="table-row" key={candidate.employeeId}><span>#{candidate.rank}</span><span>{candidate.employeeName}</span><strong>{candidate.score.toFixed(2)}</strong></div>)}</div></section>
   </main>;
