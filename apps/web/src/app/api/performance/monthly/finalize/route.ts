@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { calculateMonthlyPerformance } from '../../../../../../lib/monthly-performance-calculator';
+import { requireRole } from '../../../../../../lib/api-auth';
+import { PERFORMANCE_MANAGERS } from '../../../../../../lib/authorization';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
+  try { await requireRole(PERFORMANCE_MANAGERS); } catch { return NextResponse.json({ error: 'You do not have permission to finalize monthly performance' }, { status: 403 }); }
   let body: { employeeId?: string; cycle?: string };
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 }); }
   if (!body.employeeId || !body.cycle || !/^\d{4}-\d{2}$/.test(body.cycle)) return NextResponse.json({ error: 'Employee and valid YYYY-MM cycle are required' }, { status: 422 });
