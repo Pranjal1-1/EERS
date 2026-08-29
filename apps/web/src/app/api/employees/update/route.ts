@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { requireRole } from '../../../../lib/api-auth';
+import { EERSRole } from '../../../../lib/authorization';
+
 export const runtime = 'nodejs';
+const EMPLOYEE_ADMIN_ROLES: EERSRole[] = ['HR', 'MD', 'CEO', 'ADMIN'];
 
 export async function PATCH(request: Request) {
+  try { await requireRole(EMPLOYEE_ADMIN_ROLES); }
+  catch { return NextResponse.json({ error: 'You do not have permission to update employee records' }, { status: 403 }); }
   let body: { id?: string; name?: string; email?: string; jobTitle?: string; departmentId?: string; active?: boolean };
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 }); }
   if (!body.id) return NextResponse.json({ error: 'Employee id is required' }, { status: 422 });
