@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { getAuthenticatedRole } from '../../../../lib/api-auth';
+import { PERFORMANCE_MANAGERS } from '../../../../lib/authorization';
 export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
+  const role = await getAuthenticatedRole();
   const params = new URL(request.url).searchParams;
   const employeeId = params.get('employeeId'); const cycle = params.get('cycle');
+  if (!role) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   if (!employeeId || !cycle || !/^\d{4}-\d{2}$/.test(cycle)) return NextResponse.json({ error: 'employeeId and valid YYYY-MM cycle are required' }, { status: 422 });
   const url = process.env.DATABASE_URL?.trim(); if (!url) return NextResponse.json({ error: 'DATABASE_URL is required' }, { status: 503 });
   const pool = new Pool({ connectionString: url, max: 5 });
@@ -15,6 +19,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const role = await getAuthenticatedRole();
+  if (!role) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!PERFORMANCE_MANAGERS.includes(role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   let body: { employeeId?: string; kpiTemplateId?: string; cycle?: string; target?: number };
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 }); }
   if (!body.employeeId || !body.kpiTemplateId || !body.cycle || !/^\d{4}-\d{2}$/.test(body.cycle)) return NextResponse.json({ error: 'Employee, KPI and valid cycle are required' }, { status: 422 });
