@@ -1,19 +1,30 @@
 import { headers } from 'next/headers';
 import { EERSRole, isRole } from './authorization';
 
-/**
- * Reads the authenticated role from trusted server middleware/session headers.
- * A browser must never be allowed to supply this header directly; middleware
- * should overwrite it after validating the application session.
- */
-export async function getAuthenticatedRole(): Promise<EERSRole | null> {
+export type AuthenticatedRequestUser = { id: string; email: string; role: EERSRole };
+
+/** Headers are populated only by the server proxy after verifying the signed session. */
+export async function getAuthenticatedUser(): Promise<AuthenticatedRequestUser | null> {
   const h = await headers();
+  const id = h.get('x-eers-user-id');
+  const email = h.get('x-eers-user-email');
   const role = h.get('x-eers-user-role');
-  return isRole(role) ? role : null;
+  if (!id || !email || !isRole(role)) return null;
+  return { id, email, role };
+}
+
+export async function getAuthenticatedRole(): Promise<EERSRole | null> {
+  return (await getAuthenticatedUser())?.role ?? null;
 }
 
 export async function requireRole(allowed: readonly EERSRole[]): Promise<EERSRole> {
-  const role = await getAuthenticatedRole();
-  if (!role || !allowed.includes(role)) throw new Error('UNAUTHORIZED');
-  return role;
+  const user = await getAuthenticatedUser();
+  if (!user || !allowed.includes(user.role)) throw new Error('UNAUTHORIZED');
+  return user.role;
+}
+
+export async function requireUser(allowed: readonly EERSRole[] = ['EMPLOYEE','MANAGER','HR','MD','CEO','ADMIN']): Promise<AuthenticatedRequestUser> {
+  const user = await getAuthenticatedUser();
+  if (!user || !allowed.includes(user.role)) throw new Error('UNAUTHORIZED');
+  return user;
 }
