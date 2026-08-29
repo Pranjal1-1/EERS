@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { getAuthenticatedRole } from '../../../lib/api-auth';
+import { PERFORMANCE_MANAGERS } from '../../../lib/authorization';
 export const runtime = 'nodejs';
 
 async function getPool() {
@@ -9,6 +11,8 @@ async function getPool() {
 }
 
 export async function GET(request: Request) {
+  const role = await getAuthenticatedRole();
+  if (!role) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const departmentId = new URL(request.url).searchParams.get('departmentId');
   let pool: Pool | undefined;
   try {
@@ -20,6 +24,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const role = await getAuthenticatedRole();
+  if (!role) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!PERFORMANCE_MANAGERS.includes(role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   let body: { departmentId?: string; name?: string; target?: number; weight?: number };
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 }); }
   const name = body.name?.trim();
