@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { calculateMonthlyPerformance } from '../../../../../../lib/monthly-performance-calculator';
-import { requireRole } from '../../../../../../lib/api-auth';
-import { PERFORMANCE_MANAGERS } from '../../../../../../lib/authorization';
+import { calculateMonthlyPerformance } from '../../../../../lib/monthly-performance-calculator';
+import { requireRole } from '../../../../../lib/api-auth';
+import { PERFORMANCE_MANAGERS } from '../../../../../lib/authorization';
 
 export const runtime = 'nodejs';
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { getAuthenticatedRole, getAuthenticatedUserId } from '../../../../lib/api-auth';
-import { PERFORMANCE_MANAGERS } from '../../../../lib/authorization';
+import { getAuthenticatedRole, getAuthenticatedUser } from '../../../lib/api-auth';
+import { PERFORMANCE_MANAGERS } from '../../../lib/authorization';
 export const runtime = 'nodejs';
 
 function scoreAchievement(target: number, achieved: number) {
@@ -12,9 +12,9 @@ function scoreAchievement(target: number, achieved: number) {
 export async function GET(request: Request) {
   const p = new URL(request.url).searchParams; const employeeId = p.get('employeeId'); const cycle = p.get('cycle');
   if (!employeeId || !cycle || !/^\d{4}-\d{2}$/.test(cycle)) return NextResponse.json({ error: 'employeeId and valid YYYY-MM cycle are required' }, { status: 422 });
-  const role = await getAuthenticatedRole(); const userId = await getAuthenticatedUserId();
-  const allowed = role && PERFORMANCE_MANAGERS.includes(role);
-  if (!allowed && userId !== employeeId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const user = await getAuthenticatedUser();
+  const allowed = user && PERFORMANCE_MANAGERS.includes(user.role);
+  if (!allowed && user?.id !== employeeId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const url = process.env.DATABASE_URL?.trim(); if (!url) return NextResponse.json({ error: 'DATABASE_URL is required' }, { status: 503 });
   const pool = new Pool({ connectionString: url, max: 5 });
   try {

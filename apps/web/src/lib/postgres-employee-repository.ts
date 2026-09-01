@@ -1,6 +1,6 @@
+import { Pool } from 'pg';
 import type { EmployeeRecord } from './persistence-model';
 import { assertServerDatabaseAccess } from './db';
-import { pool } from './postgres';
 import type { EmployeeRepository } from './repositories';
 
 type EmployeeRow = {
@@ -18,20 +18,26 @@ function toEmployee(row: EmployeeRow): EmployeeRecord {
 }
 
 export class PostgresEmployeeRepository implements EmployeeRepository {
-  constructor() { assertServerDatabaseAccess(); }
+  private readonly pool: Pool;
+
+  constructor(databaseUrl = process.env.DATABASE_URL) {
+    assertServerDatabaseAccess();
+    if (!databaseUrl?.trim()) throw new Error('DATABASE_URL is required');
+    this.pool = new Pool({ connectionString: databaseUrl, max: 10, connectionTimeoutMillis: 5000, idleTimeoutMillis: 30000 });
+  }
 
   async list(): Promise<EmployeeRecord[]> {
-    const result = await pool.query<EmployeeRow>(`SELECT id, employee_code, name, email, department_id, role, active FROM employees ORDER BY name ASC`);
+    const result = await this.pool.query<EmployeeRow>(`SELECT id, employee_code, name, email, department_id, role, active FROM employees ORDER BY name ASC`);
     return result.rows.map(toEmployee);
   }
 
   async findById(id: string): Promise<EmployeeRecord | null> {
-    const result = await pool.query<EmployeeRow>(`SELECT id, employee_code, name, email, department_id, role, active FROM employees WHERE id = $1`, [id]);
+    const result = await this.pool.query<EmployeeRow>(`SELECT id, employee_code, name, email, department_id, role, active FROM employees WHERE id = $1`, [id]);
     return result.rows[0] ? toEmployee(result.rows[0]) : null;
   }
 
   async save(employee: EmployeeRecord): Promise<EmployeeRecord> {
-    const result = await pool.query<EmployeeRow>(`INSERT INTO employees (id, employee_code, name, email, department_id, role, active) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO UPDATE SET employee_code = EXCLUDED.employee_code, name = EXCLUDED.name, email = EXCLUDED.email, department_id = EXCLUDED.department_id, role = EXCLUDED.role, active = EXCLUDED.active RETURNING id, employee_code, name, email, department_id, role, active`, [employee.id, employee.employeeCode, employee.name, employee.email, employee.departmentId, employee.role, employee.active]);
+    const result = await this.pool.query<EmployeeRow>(`INSERT INTO employees (id, employee_code, name, email, department_id, role, active) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO UPDATE SET employee_code = EXCLUDED.employee_code, name = EXCLUDED.name, email = EXCLUDED.email, department_id = EXCLUDED.department_id, role = EXCLUDED.role, active = EXCLUDED.active RETURNING id, employee_code, name, email, department_id, role, active`, [employee.id, employee.employeeCode, employee.name, employee.email, employee.departmentId, employee.role, employee.active]);
     return toEmployee(result.rows[0]);
   }
 }

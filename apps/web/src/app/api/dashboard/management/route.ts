@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { requireUser } from '../../../lib/api-auth';
-import { PERFORMANCE_MANAGERS } from '../../../lib/authorization';
+import { requireUser } from '../../../../lib/api-auth';
+import { PERFORMANCE_MANAGERS } from '../../../../lib/authorization';
 
 export const runtime = 'nodejs';
 

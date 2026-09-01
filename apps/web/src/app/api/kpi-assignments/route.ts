@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { getAuthenticatedRole } from '../../../../lib/api-auth';
-import { PERFORMANCE_MANAGERS } from '../../../../lib/authorization';
+import { getAuthenticatedRole } from '../../../lib/api-auth';
+import { PERFORMANCE_MANAGERS } from '../../../lib/authorization';
 export const runtime = 'nodejs';
 
 export async function GET(request: Request) {

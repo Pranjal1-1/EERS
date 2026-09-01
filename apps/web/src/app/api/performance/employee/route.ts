@@ -31,6 +31,35 @@ export async function GET(request: Request) {
       pool.query(`SELECT cycle,overall_score,eligible,finalized FROM monthly_performance WHERE employee_id=$1 ORDER BY cycle DESC LIMIT 12`,[employeeId])
     ]);
     const a=attendance.rows[0]; const attendanceScore=Number(a.total)>0?Number(a.present)/Number(a.total)*100:null;
-    return NextResponse.json({data:{employee:employee.rows[0],cycle,kpis:kpis.rows.map(r=>({...r,target:Number(r.target),weight:Number(r.weight),achieved:r.achieved===null?null:Number(r.achieved),score:r.score===null?null:Number(r.score)})),attendance:{present:Number(a.present||0),absent:Number(a.absent||0),leave:Number(a.leave||0),total:Number(a.total||0),score:attendanceScore===null?null:Number(attendanceScore.toFixed(2))},reviews:reviews.rows.map(r=>({...r,score:Number(r.score)})),monthlyPerformance:current.rows[0]||null,history:history.rows});
+    const mappedKpis = kpis.rows.map((r: any) => ({
+      ...r,
+      target: Number(r.target),
+      weight: Number(r.weight),
+      achieved: r.achieved === null ? null : Number(r.achieved),
+      score: r.score === null ? null : Number(r.score),
+    }));
+    const mappedAttendance = {
+      present: Number(a.present || 0),
+      absent: Number(a.absent || 0),
+      leave: Number(a.leave || 0),
+      total: Number(a.total || 0),
+      score: attendanceScore === null ? null : Number(attendanceScore.toFixed(2)),
+    };
+    const mappedReviews = reviews.rows.map((r: any) => ({
+      ...r,
+      score: Number(r.score),
+    }));
+
+    return NextResponse.json({
+      data: {
+        employee: employee.rows[0],
+        cycle,
+        kpis: mappedKpis,
+        attendance: mappedAttendance,
+        reviews: mappedReviews,
+        monthlyPerformance: current.rows[0] || null,
+        history: history.rows,
+      },
+    });
   } catch(e){console.error(e);return NextResponse.json({error:'Unable to load employee performance'},{status:500});} finally{await pool.end();}
 }
