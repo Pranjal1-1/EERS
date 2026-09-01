@@ -54,8 +54,7 @@ export class PostgresEmployeeRepository implements EmployeeRepository {
       const existing = await client.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1', [input.email]);
       if (existing.rows[0]) throw Object.assign(new Error('A user with this email already exists'), { code: '23505' });
 
-      // A temporary random password prevents the new account from being usable until
-      // credentials are explicitly provisioned, while satisfying the users schema.
+      // Provision a random, unusable-until-shared temporary credential for the employee account.
       const temporaryPassword = `EERS-${crypto.randomUUID()}-Temp!`;
       const passwordHash = hashPassword(temporaryPassword);
       const userResult = await client.query(
@@ -66,10 +65,10 @@ export class PostgresEmployeeRepository implements EmployeeRepository {
 
       const { rows } = await client.query(`
         INSERT INTO employees
-          (user_id, employee_id, first_name, last_name, email, department_id, designation, manager_id, joining_date, status)
+          (user_id, employee_id, first_name, last_name, phone, designation, department_id, manager_id, joining_date, status)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-        RETURNING id, employee_id, first_name, last_name, department_id, designation, manager_id, joining_date, status
-      `, [userId, input.employeeId, input.firstName, input.lastName, input.email.trim().toLowerCase(), input.departmentId, input.designation, input.managerId, input.joiningDate, input.status ?? 'ACTIVE']);
+        RETURNING id, employee_id, first_name, last_name, designation, department_id, manager_id, joining_date, status
+      `, [userId, input.employeeId, input.firstName, input.lastName, null, input.designation, input.departmentId, input.managerId, input.joiningDate, input.status ?? 'ACTIVE']);
       await client.query('COMMIT');
       return this.mapRow({ ...rows[0], email: input.email.trim().toLowerCase() });
     } catch (error) {
