@@ -1,11 +1,4 @@
-import { randomUUID } from 'node:crypto';
-
 export type BonusStatus = 'PENDING' | 'APPROVED' | 'PROCESSED' | 'PAID';
-
-export function createCertificateNumber(awardType: 'EMPLOYEE_OF_MONTH' | 'EMPLOYEE_OF_YEAR', year: number): string {
-  const prefix = awardType === 'EMPLOYEE_OF_YEAR' ? 'EOY' : 'EOM';
-  return `EERS-${prefix}-${year}-${randomUUID().slice(0, 8).toUpperCase()}`;
-}
 
 export function transitionBonusStatus(current: BonusStatus, next: BonusStatus): BonusStatus {
   const allowed: Record<BonusStatus, BonusStatus[]> = {
