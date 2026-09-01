@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const metrics = [
   ['Employees', '10'],
   ['Departments', '3'],
@@ -6,12 +8,12 @@ const metrics = [
 ];
 
 const modules = [
-  ['01', 'Employee Directory', 'Manage employee profiles, departments and roles.'],
-  ['02', 'Attendance', 'Import Excel attendance and maintain an auditable record.'],
-  ['03', 'Performance', 'Review KPI, manager, project, client and recognition evidence.'],
-  ['04', 'Awards', 'Recommend, approve and finalize Employee of the Month and Year.'],
-  ['05', 'Rewards', 'Manage bonuses and certificate issuance after finalization.'],
-  ['06', 'Audit', 'Keep a traceable history of important decisions and changes.'],
+  ['01', 'Employee Directory', 'Manage employee profiles, departments and roles.', '/employees'],
+  ['02', 'Attendance', 'Import attendance and maintain an auditable record.', '/attendance'],
+  ['03', 'Performance', 'Review KPI, manager, project, client and recognition evidence.', '/performance'],
+  ['04', 'Awards', 'Recommend, approve and finalize Employee of the Month and Year.', '/awards'],
+  ['05', 'Rewards', 'Manage bonuses and certificate issuance after finalization.', '/rewards'],
+  ['06', 'Audit', 'Keep a traceable history of important decisions and changes.', '/admin'],
 ];
 
 export default function Home() {
@@ -23,7 +25,11 @@ export default function Home() {
           <h1>Employee Excellence & Recognition System</h1>
           <p className="muted">One place to measure performance, recognize excellence and govern company-wide awards.</p>
         </div>
-        <span className="status">V1 · Active</span>
+        <div className="actions">
+          <Link className="button" href="/login">Sign in</Link>
+          <Link className="button" href="/management">Management</Link>
+          <span className="status">V1 · Active</span>
+        </div>
       </header>
 
       <section className="grid">
@@ -47,12 +53,13 @@ export default function Home() {
       </section>
 
       <section className="module-grid">
-        {modules.map(([number, title, description]) => (
-          <article className="card module" key={number}>
+        {modules.map(([number, title, description, href]) => (
+          <Link className="card module" href={href} key={number}>
             <span className="module-number">{number}</span>
             <h3>{title}</h3>
             <p className="muted">{description}</p>
-          </article>
+            <span className="module-link">Open module →</span>
+          </Link>
         ))}
       </section>
     </main>
