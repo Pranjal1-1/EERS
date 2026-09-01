@@ -24,8 +24,9 @@ export async function POST(request: Request) {
   try {
     const employee = await employeeRepository.create(body);
     return NextResponse.json({ data: employee }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST /api/employees failed', error);
+    if (error?.code === '23505') return NextResponse.json({ error: 'Employee ID or email already exists' }, { status: 409 });
     return NextResponse.json({ error: 'Unable to create employee' }, { status: 500 });
   }
 }
