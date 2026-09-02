@@ -8,7 +8,7 @@ export async function GET() {
   if (!databaseUrl) return NextResponse.json({ error: 'DATABASE_URL is required' }, { status: 503 });
   const pool = new Pool({ connectionString: databaseUrl, max: 5, connectionTimeoutMillis: 5000, idleTimeoutMillis: 30000 });
   try {
-    const { rows } = await pool.query(`SELECT d.id, d.name, COUNT(e.id)::int AS employee_count FROM departments d LEFT JOIN employees e ON e.department_id=d.id AND e.active=true WHERE d.active=true GROUP BY d.id, d.name ORDER BY d.name`);
+    const { rows } = await pool.query(`SELECT d.id, d.name, COUNT(e.id)::int AS employee_count FROM departments d LEFT JOIN employees e ON e.department_id=d.id AND e.status='ACTIVE' WHERE d.is_active=true GROUP BY d.id, d.name ORDER BY d.name`);
     const total = rows.reduce((sum, row) => sum + row.employee_count, 0);
     return NextResponse.json({ data: rows, total });
   } catch (error) {
